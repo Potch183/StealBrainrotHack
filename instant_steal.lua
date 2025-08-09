@@ -1,24 +1,31 @@
--- Instant Steal UI for Steal a Brainrot
-local ScreenGui = Instance.new("ScreenGui")
-local Button = Instance.new("TextButton")
+local brainrot = script.Parent
+local DEBOUNCE_TIME = 1 -- 1 second cooldown before another pickup
 
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local lastPickup = {}
 
-Button.Parent = ScreenGui
-Button.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-Button.Size = UDim2.new(0, 150, 0, 50)
-Button.Position = UDim2.new(0.5, -75, 0.8, 0)
-Button.Text = "Instant Steal"
-Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Button.TextScaled = true
-Button.Font = Enum.Font.GothamBold
+brainrot.Touched:Connect(function(hit)
+    local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+    if player then
+        -- debounce check
+        if lastPickup[player] and tick() - lastPickup[player] < DEBOUNCE_TIME then
+            return
+        end
+        lastPickup[player] = tick()
 
-Button.MouseButton1Click:Connect(function()
-    local remote = game.ReplicatedStorage:FindFirstChild("RemoteEventNameHere")
-    if remote then
-        remote:FireServer("FinishSteal") -- Adjust args
-    else
-        warn("RemoteEvent not found!")
+        -- Give the player the brainrot (example: add to leaderstats)
+        local stats = player:FindFirstChild("leaderstats")
+        if stats then
+            local brainrots = stats:FindFirstChild("Brainrots")
+            if brainrots then
+                brainrots.Value = brainrots.Value + 1
+            end
+        end
+
+        -- Optionally remove brainrot from map
+        brainrot.Transparency = 1
+        brainrot.CanTouch = false
+        wait(1) -- respawn delay
+        brainrot.Transparency = 0
+        brainrot.CanTouch = true
     end
 end)
